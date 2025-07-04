@@ -11,3 +11,6 @@
 .DS_Store
 data
 __pycache__
+
+# LaTeX build directory
+build/
