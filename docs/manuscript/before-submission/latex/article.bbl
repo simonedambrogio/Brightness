@@ -1,0 +1,18 @@
+\begin{thebibliography}{1}
+
+\bibitem{kour2014real}
+George Kour and Raid Saabne.
+\newblock Real-time segmentation of on-line handwritten arabic script.
+\newblock {\em Frontiers in ICT}, 1:2, 2014.
+
+\bibitem{kour2014fast}
+George Kour and Raid Saabne.
+\newblock Fast classification of handwritten on-line arabic characters.
+\newblock {\em Soft Computing and Pattern Recognition (SoCPaR), 2014 6th International Conference of}, pages 312--318, 2014.
+
+\bibitem{hadash2018estimate}
+Guy Hadash, Einat Kermany, Boaz Carmeli, Ofer Lavi, George Kour, and Alon Jacovi.
+\newblock Estimate and replace: A novel approach to integrating deep neural networks with existing applications.
+\newblock {\em arXiv preprint arXiv:1804.09028}, 2018.
+
+\end{thebibliography}

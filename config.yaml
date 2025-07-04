@@ -1,0 +1,16 @@
+local:
+    data: /Volumes/PROJECTS/Ongoing/Brightness/data
+    vam:
+        data_dir: /Volumes/PROJECTS/Ongoing/Brightness/data/processed/vam/model_inputs
+        save_dir: /Volumes/PROJECTS/Ongoing/Brightness/data/results/vam/training
+        expt_name: aVAM
+
+colors:
+    gain-salient: "#4155a5"
+    loss-salient: "#71cace"
+    accept: "#00857D"
+    reject: "#FF3333"
+
+    parameters: 
+        lighter: "#60ade3"
+        darker:  "#0868AC"
