@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate("/Volumes/PROJECTS/Ongoing/Salience/scr/VAMSalience")
 
-using NPZ, YAML, LinearAlgebra, CairoMakie, GLMakie, Statistics, ProgressBars, MultivariateStats
+using NPZ, YAML, LinearAlgebra, CairoMakie, GLMakie, Statistics, ProgressBars, MultivariateStats, HypothesisTests
 
 println("--- Setting up Configuration ---")
 config = YAML.load_file("config.yaml");
@@ -189,3 +189,12 @@ println("cor(left_salient, comp3) = ", Statistics.cor(left_salient, comp3))
 # ========================
 
 
+println("cor(value_gain .- value_loss, comp1) = ", Statistics.cor(value_gain .- value_loss, comp1))
+
+# Test statistical significance of the correlation
+corr_test = CorrelationTest(value_gain .- value_loss, comp1)
+println("Correlation test results:")
+println("  r = ", corr_test.r)
+println("  p-value = ", pvalue(corr_test))
+println("  95% CI = ", confint(corr_test))
+println("  Significant at α=0.05? ", pvalue(corr_test) < 0.05)

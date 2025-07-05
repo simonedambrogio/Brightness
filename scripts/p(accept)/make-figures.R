@@ -1,11 +1,85 @@
 library(ggplot2); library(ggdist); library(tidyr); library(yaml)
-library(grid); library(gtable); library(forcats)
+library(grid); library(gtable); library(forcats); library(brms)
 config <- read_yaml("config.yaml")
-source("src/mytheme.R")
+source("src/utils.R")
 
-# value difference -------------------------------------------------------------
 data_behavior <- read.csv("data/processed/data_behavior.csv") 
 
+# value conversion -------------------------------------------------------------
+# Calculate the increase in expected value ($) when gain is salient 
+# compared to when loss is salient
+ev <- data_behavior$gain * 0.5 - data_behavior$loss * 0.5
+sd_ev <- sd(ev)
+m <- readRDS("data/results/p(accept)/m1.1.rds")
+b <- prepare_predictions(m)$dpars$mu$fe$b %>% as_tibble()
+ratio <- b$b_gain_is_salient / b$b_evZ
+dollar_equivalent <- as.vector(ratio * sd_ev)
+print_latex(dollar_equivalent) # $\beta = 0.368, \mathrm{SD} = 0.078, 95\%~\mathrm{CrI} [0.220, 0.528]$ 
+
+# Calculate the increase in gain ($) and loss ($) when gain is salient 
+# compared to when loss is salient
+ev <- data_behavior$gain - data_behavior$loss
+sd_ev <- sd(ev)
+m <- readRDS("data/results/p(accept)/m.1.rds")
+b <- prepare_predictions(m)$dpars$mu$fe$b %>% as_tibble()
+# gain
+ratio <- b$b_gain_is_salient / b$b_gainZ
+dollar_equivalent <- as.vector(ratio * sd_ev)
+print_latex(dollar_equivalent) # $\beta = 1.087, \mathrm{SD} = 0.232, 95\%~\mathrm{CrI} [0.654, 1.567]$ 
+# loss 
+ratio <- b$b_gain_is_salient / b$b_lossZ
+dollar_equivalent <- as.vector(ratio * sd_ev)
+print_latex(dollar_equivalent) # $\beta = -1.037, \mathrm{SD} = 0.219, 95\%~\mathrm{CrI} [-1.488, -0.627]$
+
+
+# p(accept) ~ ev + salience ----------------------------------------------------
+m <- readRDS("data/results/p(accept)/m1.1.rds")
+fe_draws <- m %>%
+  spread_draws(
+    b_Intercept,
+    b_gain_is_salient
+  )
+
+# Compute mean and credible intervals
+pp <- prepare_predictions(m)
+fe <- as.data.frame(pp$dpars$mu$fe$b)
+post_gainissalient = plogis(fe$b_Intercept + fe$b_gain_is_salient)
+post_lossissalient = plogis(fe$b_Intercept)
+
+fixef_df <- rbind(
+  tibble(salience="Gain is Salient", post=post_gainissalient, x=1),
+  tibble(salience="Loss is Salient", post=post_lossissalient, x=2)
+) 
+
+plot_accept_salience <- fixef_df %>% 
+  ggplot(aes(x = salience, y = post, fill=salience, color=salience)) +
+  stat_gradientinterval(width=0.2) +
+  stat_halfeye(alpha=0.6) +
+  geom_line(
+    data=fixef_df %>% group_by(salience) %>% summarise(post=mean(post)), 
+    aes(group=salience), linetype = "dashed"
+  ) +
+  # geom_jitter(data = ranef_df, aes(x-0.1, prob, color=condition),  alpha=0.1, width=0.1) +
+  scale_color_manual(values = c(config$colors$`gain-salient`, config$colors$`loss-salient`)) +
+  scale_fill_manual(values = c(blend_colors(config$colors$`gain-salient`, alpha = 0.4), blend_colors(config$colors$`loss-salient`, alpha = 0.4) )) +
+  mytheme() + 
+  labs(x="", y="Probability of accepting the gamble", color="", fill="") +
+  scale_x_discrete(guide = "prism_offset") + 
+  scale_y_continuous(guide = "prism_offset") +
+  coord_flip() +
+  theme(legend.position="none"); print(plot_accept_salience)
+
+# Save the plot
+ggsave("figures/p(accept)/salience.png",
+       plot = plot_accept_salience,
+       width = 9, height = 2.5, dpi = 300)
+
+ggsave("figures/p(accept)/salience.svg",
+       plot = plot_accept_salience,
+       width = 8, height = 2.5)
+
+
+# value difference -------------------------------------------------------------
 # Calculate empirical p(accept) for observed data
 empirical_data <- data_behavior %>%
   mutate(
@@ -106,7 +180,7 @@ ggsave("figures/p(accept)/heatmap.svg",
 
 
 # coefficients -----------------------------------------------------------------
-source("scripts/p(accept)/fit.R")
+m <- readRDS("data/results/p(accept)/m.rds")
 
 # Horizontal 
 pp <- prepare_predictions(m)

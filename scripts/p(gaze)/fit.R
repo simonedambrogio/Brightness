@@ -1,5 +1,7 @@
 library(tidyverse); library(brms); library(yaml)
+source("src/utils.R")
 config <- read_yaml("config.yaml")
+
 
 if (!file.exists("data/results/p(gaze)/m.rds")){
 
@@ -9,8 +11,8 @@ if (!file.exists("data/results/p(gaze)/m.rds")){
     filter(fix_type1!="elsewhere") %>% 
     mutate(
         look_at_gain = ifelse(fix_type1=="gain", 1, 0),
-        gainZ = scale(gain) %>% as.vector(),
-        lossZ = scale(loss) %>% as.vector(),
+        gainZ = z_score(gain),
+        lossZ = z_score(loss),
         gain_is_salient = ifelse(SalL=="Loss is Salient", 0, 1)
     ) %>% 
     group_by(subject) %>% 
@@ -35,8 +37,7 @@ if (!file.exists("data/results/p(gaze)/m.rds")){
     path2save <- file.path(config$local$data, "results/p(gaze)")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(m, file.path(path2save, "m.rds"))
-} else {  
-    print("Loading pre-computed model")
-    m = readRDS("data/results/p(gaze)/m.rds")
+    save_bayes_md(m, file.path(path2save, "m.md"))
 }
+
 

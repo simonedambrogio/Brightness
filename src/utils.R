@@ -10,6 +10,8 @@ blend_colors <- function(foreground, background = "#FFFFFF", alpha = 0.3) {
   rgb(blended_rgb[1], blended_rgb[2], blended_rgb[3])
 }
 
+
+
 report_bayes_latex <- function(model, digits = 3, ci_level = 0.95) {
 
   # Calculate quantiles for credible interval
@@ -29,7 +31,7 @@ report_bayes_latex <- function(model, digits = 3, ci_level = 0.95) {
   ci_low_col <- names(sort(colMeans(ci_cols)))[1]
   ci_high_col <- names(sort(colMeans(ci_cols)))[2]
 
-  ci_label <- paste0(round(ci_level * 100), "\\%~\\text{CrI}")
+  ci_label <- paste0(round(ci_level * 100), "\\%~\\mathrm{CrI}")
 
   output <- apply(post, 1, function(row) {
     beta     <- row["Estimate"]
@@ -44,7 +46,7 @@ report_bayes_latex <- function(model, digits = 3, ci_level = 0.95) {
 
     latex_str <- paste0(
       "$\\beta = ", beta_str,
-      ", \\text{SD} = ", sd_str,
+      ", \\mathrm{SD} = ", sd_str,
       ", ", ci_label,
       " [", ci_low_str, ", ", ci_high_str, "]$"
     )
@@ -63,4 +65,55 @@ print_bayes_latex <- function(model, digits = 3, ci_level = 0.95) {
   for (i in seq_along(result)) {
     cat(result[i], "\n")
   }
+}
+
+print_vector_latex <- function(posterior_vector, param_name = "Parameter", digits = 3, ci_level = 0.95) {
+  # Calculate summary statistics
+  mean_val <- mean(posterior_vector)
+  sd_val <- sd(posterior_vector)
+  
+  # Calculate credible interval quantiles
+  lower_q <- (1 - ci_level) / 2
+  upper_q <- 1 - lower_q
+  ci_low <- quantile(posterior_vector, lower_q)
+  ci_high <- quantile(posterior_vector, upper_q)
+  
+  # Format values
+  mean_str <- sprintf(paste0("%.", digits, "f"), mean_val)
+  sd_str <- sprintf(paste0("%.", digits, "f"), sd_val)
+  ci_low_str <- sprintf(paste0("%.", digits, "f"), ci_low)
+  ci_high_str <- sprintf(paste0("%.", digits, "f"), ci_high)
+  
+  # Create CI label
+  ci_label <- paste0(round(ci_level * 100), "\\%~\\mathrm{CrI}")
+  
+  # Format LaTeX string
+  latex_str <- paste0(
+    "$\\beta = ", mean_str,
+    ", \\mathrm{SD} = ", sd_str,
+    ", ", ci_label,
+    " [", ci_low_str, ", ", ci_high_str, "]$"
+  )
+  
+  # Print the result
+  result <- paste0(param_name, ": ", latex_str)
+  cat(result, "\n")
+}
+
+print_latex <- function(inp, digits = 3, ci_level = 0.95, param_name = ""){
+  # Check if input is a brms model
+  if (inherits(inp, "brmsfit")) {
+    # Use print_bayes_latex for brms models
+    print_bayes_latex(inp, digits = digits, ci_level = ci_level)
+  } else if (is.numeric(inp) && is.vector(inp)) {
+    # Use print_vector_latex for numeric vectors
+    print_vector_latex(inp, param_name = param_name, digits = digits, ci_level = ci_level)
+  } else {
+    stop("Input must be either a brmsfit object or a numeric vector")
+  }
+}
+
+save_bayes_md <- function(model, path, digits = 3, ci_level = 0.95) {
+  result <- report_bayes_latex(model, digits, ci_level)
+  writeLines(result, path)
 }

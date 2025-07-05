@@ -35,10 +35,7 @@ if (!file.exists("data/results/mediation/m.rds")){
     path2save <- file.path(config$local$data, "results/mediation")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(brms_mediation_fit, file = file.path(path2save, "m.rds"))
-} else {
-    print("Loading model...")
-    m <- readRDS("data/results/mediation/m.rds")
-}
+} 
 
 # gazegainZ_Intercept: $\beta = -0.062, \text{SD} = 0.029, 95\%~\text{CrI} [-0.119, -0.005]$ 
 # choice_Intercept: $\beta = -0.895, \text{SD} = 0.166, 95\%~\text{CrI} [-1.222, -0.573]$ 

@@ -4,6 +4,7 @@ library(ggdist); library(yaml)
 config <- yaml::read_yaml(file = "config.yaml")
 
 # 1. Extract posterior samples
+m <- readRDS("data/results/mediation/m.rds")
 post_samples <- posterior_samples(m)
 
 # 2. Calculate conditional effects for each posterior draw
@@ -28,12 +29,12 @@ sd_ADE <- sd(post_samples$ADE)
 
 # Print the summaries
 cat("Conditional Indirect Effects (ACME):\n")
-cat("Estimate =", round(median_ACME, 4), " 95% CI [", round(ci_ACME[1], 4), ",", round(ci_ACME[2], 4), "]\n")
-cat("$\\beta =", round(median_ACME, 3), "\\text{SD}=", round(sd_ACME, 3), "95\\%\\text{CrI}~[", round(ci_ACME[1], 3), ",", round(ci_ACME[2], 3), "]$")
+cat("ACME =", round(median_ACME, 4), " 95% CI [", round(ci_ACME[1], 4), ",", round(ci_ACME[2], 4), "]\n")
+cat("$\\mathrm{ACME} =", round(median_ACME, 3), "\\mathrm{SD}=", round(sd_ACME, 3), "95\\%\\mathrm{CrI}~[", round(ci_ACME[1], 3), ",", round(ci_ACME[2], 3), "]$")
 
 cat("Conditional Direct Effects (ADE):\n")
-cat(" Brightness: Estimate =", round(median_ADE, 4), " 95% CI [", round(ci_ADE[1], 4), ",", round(ci_ADE[2], 4), "]\n")
-cat("$\\beta =", round(median_ADE, 3), "\\text{SD}=", round(sd_ADE, 3), "95\\%\\text{CrI}~[", round(ci_ADE[1], 3), ",", round(ci_ADE[2], 3), "]$")
+cat(" ADE =", round(median_ADE, 4), " 95% CI [", round(ci_ADE[1], 4), ",", round(ci_ADE[2], 4), "]\n")
+cat("$\\mathrm{ADE} =", round(median_ADE, 3), "\\mathrm{SD}=", round(sd_ADE, 3), "95\\%\\mathrm{CrI}~[", round(ci_ADE[1], 3), ",", round(ci_ADE[2], 3), "]$")
 
 
 color_densities <- config$colors$`gain-salient`
@@ -110,3 +111,33 @@ data.frame(post=post_samples$ADE) %>%
   )
 
 ggsave("figures/mediation/salience->accept.svg", width = 4, height = 2.5)
+
+
+# Subject level correlation
+data_behavior <- read.csv(file = "data/processed/data_behavior.csv") %>% as_tibble()
+
+data_bias <- data_behavior %>% 
+  group_by(subject) %>% 
+  summarise(
+    gaze_bias =  mean(gaze_gain[!SalL]) - mean(gaze_gain[SalL]),
+    choice_bias = mean(choice[!SalL]) - mean(choice[SalL])
+  )
+
+r <- cor.test(data_bias$gaze_bias, data_bias$choice_bias)
+
+data_bias %>% 
+  ggplot() +
+  geom_point(aes(gaze_bias, choice_bias), size=6, alpha=0.5) +
+  geom_smooth(aes(gaze_bias, choice_bias), se=F, method = "lm", color="darkorange", linetype=1) +
+  geom_text(
+    data = data.frame(x=0.6, y=1.3, label=str_c("r = ", round(r$estimate, 2), ", p = ", format(r$p.value, scientific=TRUE, digits=2))),
+    aes(x,y,label = label), size=6, family = "Avenir Light"
+  ) +
+  labs(x="Gaze bias", y = "Choice Bias") +
+  mytheme() +
+  scale_x_continuous(guide = "prism_offset", limits = c(-0.4, 0.9), breaks = seq(-0.3, 0.6, 0.3)) +
+  scale_y_continuous(guide = "prism_offset", limits = c(-0.8, 1.5), breaks = seq(-0.5, 1, 0.5))
+
+
+ggsave("figures/mediation/corplot.png", width = 6, height = 6, dpi = 300)
+ggsave("figures/mediation/corplot.svg", width = 6, height = 6)

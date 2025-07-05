@@ -1,7 +1,7 @@
 library(tidyr); library(tidybayes); library(grid); library(gtable)
 source("src/utils.R")
 
-m = readRDS("data/results/p(gaze)/m.rds")
+m = readRDS("data/results/p(first-gaze)/m1.rds")
 
 # Plot probability of looking at gain ------------------------------------------
 # Get random effects and fixed effects draws
@@ -63,20 +63,20 @@ plot_gaze <- fixef_df %>%
   scale_color_manual(values = c(config$colors$`gain-salient`, config$colors$`loss-salient`)) +
   scale_fill_manual(values = c(blend_colors(config$colors$`gain-salient`, alpha = 0.4), blend_colors(config$colors$`loss-salient`, alpha = 0.4) )) +
   mytheme() + 
-  labs(x="", y="Probability of looking at gain", color="", fill="") +
+  labs(x="", y="Probability of looking at gain first", color="", fill="") +
   scale_x_discrete(guide = "prism_offset") + 
   scale_y_continuous(guide = "prism_offset", limits = c(0.43, 0.65), breaks = seq(0.4, .65, .05)) +
   theme(
     legend.position="none",
-    plot.margin = margin(t = 60, r = 5, b = 5, l = 5, unit = "pt")
+    plot.margin = margin(t = 70, r = 5, b = 5, l = 5, unit = "pt")
   ); print(plot_gaze)
 
 # Save the plot
-ggsave("figures/p(gaze)/salience.png",
+ggsave("figures/p(first-gaze)/salience.png",
        plot = plot_gaze,
        width = 4.5, dpi = 300)
 
-ggsave("figures/p(gaze)/salience.svg",
+ggsave("figures/p(first-gaze)/salience.svg",
        plot = plot_gaze,
        width = 4, height = 5)
 
@@ -89,6 +89,7 @@ pp <- prepare_predictions(m)
 fe <- as.data.frame(pp$dpars$mu$fe$b) %>% 
   rename(
     Intercept = b_Intercept, 
+    # EV = b_evZ, 
     Gain = b_gainZ, 
     Loss = b_lossZ, 
     `Gain is\nSalient` = `b_gain_is_salient`
@@ -104,6 +105,7 @@ fe_means <- fe %>%
 subject_coefs <- tibble(
   subject = rownames(ranef_data),
   Intercept = ranef_data[, "Intercept"],
+  # EV = ranef_data[, "evZ"], 
   Gain = ranef_data[, "gainZ"], 
   Loss = ranef_data[, "lossZ"],
   `Gain is\nSalient` = ranef_data[, "gain_is_salient"]
@@ -111,6 +113,7 @@ subject_coefs <- tibble(
   # Add fixed effects to get total subject-specific effects
   mutate(
     Intercept = Intercept + fe_means$Intercept,
+    # EV = EV + fe_means$EV,
     Gain = Gain + fe_means$Gain,
     Loss = Loss + fe_means$Loss,
     `Gain is\nSalient` = `Gain is\nSalient` + fe_means$`Gain is\nSalient`
@@ -174,11 +177,12 @@ grid.draw(gt)
 plot_coef <- gt  # For saving purposes
 
 # Save the plot
-ggsave("figures/p(gaze)/pars-re.png",
+ggsave("figures/p(first-gaze)/pars-re.png",
        plot = plot_coef,
        width = 8, height = 4.5, dpi = 300)
 
-ggsave("figures/p(gaze)/pars-re.svg",
+ggsave("figures/p(first-gaze)/pars-re.svg",
        plot = plot_coef,
        width = 8, height = 4.5)
+
 
