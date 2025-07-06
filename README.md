@@ -14,7 +14,7 @@ If you find this code useful, please reference in your paper:
 }
 ```
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Open_Science_Framework_log_%28and_Center_for_Open_Science_logo%29.svg" width="15px""> **Data**
+<img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Open_Science_Framework_log_%28and_Center_for_Open_Science_logo%29.svg" width="15px"> **Data**
 
 The data repository contains:
 - **Model fits and results**: Pre-computed model outputs to replicate all figures
