@@ -29,15 +29,15 @@ Our approach combines eye-tracking experiments with computational modeling to in
 1. **Indirect pathway**: Salience influences gaze allocation, which then affects choice through attentional amplification
 2. **Direct pathway**: Salience directly modulates internal value representations before attention takes effect
 
-![Method Overview](docs/manuscript/figures/fig1/fig1.png)
+![Method Overview](figures/article/fig1.png)
 
 The attentional Visual Accumulator Model (aVAM) simulates the entire decision process from raw pixel input to choice output, using a Convolutional Neural Network (CNN) for visual processing and a gaze-modulated Linear Ballistic Accumulator (LBA) for evidence accumulation.
 
-![aVAM](docs/manuscript/figures/fig4/fig4.png)
+![aVAM](figures/article/fig4.png)
 
 # Instructions
 
-The code has been tested on macOS and Linux and requires Python 3.8+ and R 4.0+.
+The code has been tested on macOS and Linux and requires Python 3.8+, R 4.0+, and Julia 1.11.
 
 ## Environment Setup
 
@@ -52,6 +52,16 @@ For training the attentional Visual Accumulator Model, we build upon the origina
 # Install required R packages
 install.packages(c("tidyverse", "brms", "ggdist", "yaml", "mediation"))
 ```
+
+### Julia Dependencies
+```julia
+# Install required Julia packages
+using Pkg
+Pkg.add(["NPZ", "YAML", "LinearAlgebra", "CairoMakie", "GLMakie", "Statistics", 
+         "ProgressBars", "MultivariateStats", "HypothesisTests", "DataFrames", "Colors"])
+```
+
+**Julia Installation**: Download and install Julia from [https://julialang.org/downloads/](https://julialang.org/downloads/)
 
 ## Data Preparation
 
@@ -106,11 +116,14 @@ julia scripts/vam/predict_choices_rts.jl
 ```
 
 ### 3. Generate Figures
-```r
+```bash
 # Generate all manuscript figures
 Rscript scripts/p\(accept\)/make-figures.R
 Rscript scripts/p\(gaze\)/make-figures.R
 Rscript scripts/gaze-over-time/make-figures.R
+Rscript scripts/mediation/make-figures.R
+julia scripts/vam/analyze_network_weights.jl
+julia scripts/vam/predict_choices_rts.jl
 ```
 
 ## Configuration
@@ -154,15 +167,6 @@ vam:
 
 **Note**: The `data/` folder structure is expected by all analysis scripts. Download the data from OSF and organize it as shown above.
 
-# Tips
-
-- All analysis parameters can be configured in `config.yaml`
-- The `debug` configuration reduces computational requirements for testing
-- Model checkpoints are saved automatically during training
-- Use `--checkpoint` flag to resume training from a specific checkpoint
-- Eye-tracking data requires webcam calibration for best results
-- Multiple salience conditions can be analyzed simultaneously using the config system
-
 # Reproducibility
 
 To reproduce the main results:
@@ -175,7 +179,10 @@ To reproduce the main results:
    ```bash
    Rscript scripts/mediation/make-figures.R
    Rscript scripts/p\(accept\)/make-figures.R
-   # Run other figure generation scripts
+   Rscript scripts/p\(gaze\)/make-figures.R
+   Rscript scripts/gaze-over-time/make-figures.R
+   julia scripts/vam/analyze_network_weights.jl
+   julia scripts/vam/predict_choices_rts.jl
    ```
 
 ## Full Reproduction (from scratch)
@@ -192,19 +199,14 @@ To reproduce the main results:
 
 3. **Generate All Figures**:
    ```bash
-   make figures  # Or run individual figure scripts
+   # Run individual figure generation scripts
+   Rscript scripts/p\(accept\)/make-figures.R
+   Rscript scripts/p\(gaze\)/make-figures.R
+   Rscript scripts/gaze-over-time/make-figures.R
+   Rscript scripts/mediation/make-figures.R
+   julia scripts/vam/analyze_network_weights.jl
+   julia scripts/vam/predict_choices_rts.jl
    ```
-
-# Troubleshooting
-
-- **CUDA Errors**: Try reducing batch size if you encounter GPU memory issues
-- **JAX Installation**: Follow the specific JAX installation instructions for your CUDA version from the [VAM repository](https://github.com/pauljaffe/vam)
-- **Python Environment**: Use Python 3.10 as recommended by the original VAM implementation
-- **R Package Issues**: Ensure all R dependencies are installed with correct versions
-- **Model Loading**: Check that checkpoint files match the model configuration
-- **Eye-tracking Data**: Verify webcam calibration quality before analysis
-- **Missing Data**: Download the complete dataset from the OSF repository and ensure it's organized in the `data/` folder structure
-- **VAM-specific Issues**: Refer to the [original VAM repository](https://github.com/pauljaffe/vam) for additional troubleshooting
 
 # Citation
 
@@ -231,10 +233,6 @@ If you use the Visual Accumulator Model (VAM) framework, please also cite the or
   year={2024}
 }
 ```
-
-# Disclaimer
-
-This repository contains research code for investigating visual salience effects on economic choice. The implementation includes novel extensions to the Visual Accumulator Model framework and Bayesian mediation analysis techniques. The code has been tested to reproduce the reported results across multiple experimental conditions.
 
 # Contact
 
