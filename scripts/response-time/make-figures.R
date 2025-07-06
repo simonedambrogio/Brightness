@@ -1,4 +1,4 @@
-library(ggplot2); library(ggdist); library(tidyr); library(yaml)
+library(ggplot2); library(ggdist); library(tidyr); library(yaml); library(dplyr)
 config <- read_yaml("config.yaml")
 source("src/mytheme.R")
 
@@ -72,3 +72,38 @@ ggsave("figures/response-time/rt_vs_value_difference.png",
 ggsave("figures/response-time/rt_vs_value_difference.svg",
        plot = p_rt_value_diff,
        width = 6, height = 5)
+
+# heat map  --------------------------------------------------------------------
+heatmap_plot <- data_behavior %>% 
+  group_by(gain, loss) %>% 
+  summarise(rt = mean(rt), .groups = 'drop') %>% 
+  ggplot(aes(x = gain, y = loss, fill = rt)) +
+  geom_tile() +
+  scale_fill_gradient2(
+    midpoint = 1.65,
+    low = config$colors$reject,
+    high = config$colors$accept,
+    mid = "white",
+    # breaks = seq(0, 1, 0.5),
+    # limits = c(0, 1)
+  ) +
+  labs(
+    x = "Gain",
+    y = "Loss",
+    fill = "Response\ntime (s)\n"
+  ) +
+  mytheme() +
+  scale_x_continuous(guide = "prism_offset", breaks = 3:9) +
+  scale_y_continuous(guide = "prism_offset", breaks = 3:9) +
+  theme(
+    legend.position = "right"
+  ); print(heatmap_plot)
+
+# Save the plot
+ggsave("figures/response-time/heatmap.png",
+       plot = heatmap_plot,
+       width = 7.5, height = 6, dpi = 300)
+
+ggsave("figures/response-time/heatmap.svg",
+       plot = heatmap_plot,
+       width = 7.5, height = 6)

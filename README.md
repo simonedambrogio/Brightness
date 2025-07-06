@@ -1,147 +1,241 @@
-This readme file was generated on 2024-01-15 by Simone D'Ambrogio
+# From Pixels to Preferences: Visual Salience Modulates Value Representations in Economic Choice
 
-# GENERAL INFORMATION
+A computational modeling approach to understanding how visual salience influences economic decision-making through multiple pathways. This repository contains the implementation of the attentional Visual Accumulator Model (aVAM) and analysis code for investigating salience effects on risky choice behavior.
 
-* Title of Dataset: Visual Salience Effects on Economic Choice: Eye-tracking and Computational Modeling Data
+![Salience Effects](figures/p%28accept%29/salience.png)
 
-## Author/Principal Investigator Information
-Name: Simone D'Ambrogio
-ORCID: [TO BE FILLED]
-Institution: University of Oxford
-Address: Department of Experimental Psychology, University of Oxford, Oxford, UK
-Email: simone.dambrogio@psy.ox.ac.uk
+If you find this code useful, please reference in your paper:
+```
+@article{dambrogio2024pixels,
+  title={From Pixels to Preferences: Visual Salience Modulates Value Representations in Economic Choice},
+  author={D'Ambrogio, Simone and Platt, Michael and Sheng, Feng},
+  journal={arXiv preprint},
+  year={2024}
+}
+```
 
-## Author/Associate or Co-investigator Information
-Name: Michael Platt
-ORCID: [TO BE FILLED]
-Institution: University of Pennsylvania
-Address: University of Pennsylvania, Philadelphia, PA, USA
-Email: [TO BE FILLED]
+<img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Open_Science_Framework_log_%28and_Center_for_Open_Science_logo%29.svg" width="30px" style="vertical-align: top; margin-top: -3px;"> **Data**
 
-## Author/Associate or Co-investigator Information
-Name: Feng Sheng
-ORCID: [TO BE FILLED]
-Institution: Zhejiang University
-Address: Zhejiang University, Hangzhou, China
-Email: [TO BE FILLED]
+The data repository contains:
+- **Model fits and results**: Pre-computed model outputs to replicate all figures
+- **Preprocessed behavioral data**: Ready-to-use data for replicating statistical analyses
+- **VAM training inputs**: Processed visual stimuli and behavioral data for training the aVAM model
 
-* Date of data collection: [TO BE FILLED - approximate date range]
-* Geographic location of data collection: Online (participants recruited via Prolific)
-* Information about funding sources that supported the collection of the data: [TO BE FILLED]
 
-# SHARING/ACCESS INFORMATION
+## Summary
 
-* Licenses/restrictions placed on the data: [TO BE FILLED]
-* Links to publications that cite or use the data: [TO BE FILLED WHEN PUBLISHED]
-* Links to other publicly accessible locations of the data: Data will be made available on OSF upon publication
-* Links/relationships to ancillary data sets: None
-* Was data derived from another source? No
-* Recommended citation for this dataset: [TO BE FILLED WHEN PUBLISHED]
+Our approach combines eye-tracking experiments with computational modeling to investigate how visual salience affects economic choice through two distinct pathways:
 
-# CODE & ANALYSIS REPOSITORY OVERVIEW
+1. **Indirect pathway**: Salience influences gaze allocation, which then affects choice through attentional amplification
+2. **Direct pathway**: Salience directly modulates internal value representations before attention takes effect
 
-**Note: This GitHub repository contains only the analysis code and figure generation scripts. The raw data will be made available separately on OSF.**
+![Method Overview](docs/manuscript/figures/fig1/fig1.png)
+
+The attentional Visual Accumulator Model (aVAM) simulates the entire decision process from raw pixel input to choice output, using a Convolutional Neural Network (CNN) for visual processing and a gaze-modulated Linear Ballistic Accumulator (LBA) for evidence accumulation.
+
+![aVAM](docs/manuscript/figures/fig4/fig4.png)
+
+# Instructions
+
+The code has been tested on macOS and Linux and requires Python 3.8+ and R 4.0+.
+
+## Environment Setup
+
+### Python Dependencies (aVAM Training)
+
+For training the attentional Visual Accumulator Model, we build upon the original VAM implementation. Please follow the setup instructions from the original VAM repository:
+
+**[VAM Repository Setup Instructions](https://github.com/pauljaffe/vam/tree/main)**
+
+### R Dependencies
+```r
+# Install required R packages
+install.packages(c("tidyverse", "brms", "ggdist", "yaml", "mediation"))
+```
+
+## Data Preparation
+
+Download the data from the [OSF repository](https://osf.io/uk46v/) and organize it in a `data/` folder as shown in the Repository Structure section below.
+
+1. **Behavioral Data**: Use the preprocessed behavioral data from the repository (`data_behavior.csv`)
+2. **Model Results**: Pre-computed model fits and outputs are available for immediate figure replication
+3. **VAM Training Data**: Processed visual stimuli and behavioral data ready for aVAM training
+4. **Eye-tracking Data**: Preprocessed gaze data from webcam-based eye tracking is included
+
+## Training the aVAM
+
+The attentional Visual Accumulator Model (aVAM) extends the original VAM framework. For detailed training instructions, please refer to the **[original VAM repository](https://github.com/pauljaffe/vam)**.
+
+```bash
+# Train the attentional Visual Accumulator Model
+python scripts/vam/train.py \
+    --data_dir data/processed/vam \
+    --save_dir results/vam \
+    --expt_name brightness_experiment
+```
+
+**Prerequisites**: 
+- Follow the Python environment setup from the [VAM repository](https://github.com/pauljaffe/vam)
+- Ensure CUDA-compatible GPU with appropriate drivers for training
+- Use Python 3.10 (strongly recommended based on VAM requirements)
+
+## Analysis Pipeline
+
+### 1. Behavioral Analysis
+```r
+# Run mediation analysis
+Rscript scripts/mediation/fit.R
+Rscript scripts/mediation/make-figures.R
+```
+
+### 2. Computational Modeling
+```bash
+# Extract network weights and activations
+python scripts/vam/save_network_weights.py \
+    training_outputs/brightness_experiment \
+    --data_dir data/processed/vam \
+    --output_dir results/vam/weights \
+    --checkpoint 69 \
+    --n_total_images 35000
+
+# Analyze internal representations
+julia scripts/vam/analyze_network_weights.jl
+
+# Generate model predictions
+julia scripts/vam/predict_choices_rts.jl
+```
+
+### 3. Generate Figures
+```r
+# Generate all manuscript figures
+Rscript scripts/p\(accept\)/make-figures.R
+Rscript scripts/p\(gaze\)/make-figures.R
+Rscript scripts/gaze-over-time/make-figures.R
+```
+
+## Configuration
+
+All configuration options are specified in `config.yaml`:
+
+```yaml
+local:
+  data: "data/"
+  
+colors:
+  gain-salient: "#1f77b4"
+  loss-salient: "#2ca02c"
+  
+vam:
+  data_dir: "data/processed/vam"
+  save_dir: "results/vam"
+  expt_name: "brightness_experiment"
+```
 
 ## Repository Structure
 
-* **scripts/**: Analysis and figure generation code
-  * `gaze-over-time/`: Scripts for analyzing gaze patterns over time
-  * `mediation/`: Code for causal mediation analysis
-  * `p(accept)/`: Scripts for choice probability analysis
-  * `p(gaze)/`: Scripts for gaze probability analysis  
-  * `response-time/`: Response time analysis code
-  * `vam/`: Visual Accumulator Model (VAM) implementation and analysis
-    * `train.py`: Model training script
-    * `predict_choices_rts.py`: Generate model predictions
-    * `analyze_network_weights.jl`: Network weight analysis (Julia)
-    * `save_network_weights.py`: Extract and save network weights
+```
+├── data/                   # Data files (download from OSF)
+│   ├── processed/         # Processed behavioral and modeling data
+│   │   ├── data_behavior.csv    # Main behavioral dataset
+│   │   └── vam/                 # VAM training inputs
+│   └── results/           # Analysis outputs and model fits
+├── docs/                  # Documentation and manuscript
+│   └── manuscript/        # LaTeX manuscript files
+├── figures/               # Generated figures (created by scripts)
+├── scripts/               # Analysis scripts
+│   ├── mediation/        # Mediation analysis
+│   ├── vam/              # VAM modeling
+│   └── p(accept)/        # Choice probability analysis
+├── src/                   # Source code
+│   ├── vam/              # VAM implementation
+│   └── utils.R           # R utilities
+└── config.yaml           # Configuration file
+```
 
-* **src/**: Core utilities and model definitions
-  * `vam/`: Visual Accumulator Model implementation in JAX
-    * `models.py`: Neural network architectures
-    * `training.py`: Training procedures
-    * `task_data.py`: Data loading and preprocessing
-    * `lba.py`: Linear Ballistic Accumulator implementation
-    * `metrics.py`: Model evaluation metrics
-    * `utils.py`: General utilities
-  * `utils.R`: R utility functions
-  * `mytheme.R`: Custom ggplot themes
+**Note**: The `data/` folder structure is expected by all analysis scripts. Download the data from OSF and organize it as shown above.
 
-* **figures/**: Generated figures (created by scripts)
-  * `gaze-over-time/`: Gaze dynamics figures
-  * `mediation/`: Mediation analysis visualizations
-  * `p(accept)/`: Choice probability figures
-  * `p(gaze)/`: Gaze probability figures
-  * `response-time/`: Response time analysis figures
-  * `vam/`: VAM model analysis figures
+# Tips
 
-* **config.yaml**: Configuration file with data paths and styling parameters
+- All analysis parameters can be configured in `config.yaml`
+- The `debug` configuration reduces computational requirements for testing
+- Model checkpoints are saved automatically during training
+- Use `--checkpoint` flag to resume training from a specific checkpoint
+- Eye-tracking data requires webcam calibration for best results
+- Multiple salience conditions can be analyzed simultaneously using the config system
 
-## File Relationships
-* Scripts in `scripts/` generate figures saved in `figures/`
-* Scripts utilize functions and utilities from `src/`
-* All paths and parameters are configured via `config.yaml`
-* VAM model scripts work together: `train.py` → `save_network_weights.py` → `analyze_network_weights.jl` → `predict_choices_rts.py`
+# Reproducibility
 
-## Additional Information
-* The `docs/` folder contains manuscript files but will not be included in the public repository
-* Raw data files will be hosted separately on OSF due to size and privacy considerations
-* All analysis code is designed to work with the data structure as it will be provided on OSF
+To reproduce the main results:
 
-# METHODOLOGICAL INFORMATION
+## Quick Reproduction (using pre-computed results)
 
-## Description of methods used for collection/generation of data
-Participants completed an online eye-tracking experiment where they made risky gambling decisions. In each trial, participants decided whether to accept or reject gambles with equal probability (50/50) of winning or losing money. Visual salience was manipulated by varying the brightness or font-size of potential gains vs. losses. Eye movements were recorded using WebGazer.js, a JavaScript library that uses webcams to infer eye-gaze locations in real time. The experiment was implemented using jsPsych and participants were recruited via Prolific.
+1. **Download Data**: Get the data from the OSF repository and organize it in the `data/` folder as shown in the Repository Structure
 
-## Methods for processing the data
-Raw gaze data was preprocessed with multiple quality control steps including response time filtering (>300ms), sampling rate requirements (>8Hz), handling missing data (NA values), and region-of-interest analysis. Gaze positions were denoised using a 300ms median filter. Choice data was analyzed using Bayesian multilevel regression models. Causal mediation analysis was performed to separate direct and indirect effects of salience on choice. Computational modeling employed a Visual Accumulator Model (VAM) combining convolutional neural networks with Linear Ballistic Accumulator models.
+2. **Generate Figures**: Use the pre-computed model fits to immediately reproduce all figures:
+   ```bash
+   Rscript scripts/mediation/make-figures.R
+   Rscript scripts/p\(accept\)/make-figures.R
+   # Run other figure generation scripts
+   ```
 
-## Instrument- or software-specific information needed to interpret the data
-* **R version 4.x+** with packages: brms, ggplot2, dplyr, tidyr, and others
-* **Python 3.8+** with packages: JAX, PyTorch, NumPy, Pandas, Matplotlib
-* **Julia 1.6+** for network weight analysis
-* **WebGazer.js** for eye-tracking data collection
-* **jsPsych** for experiment presentation
-* **VAM (Visual Accumulator Model)** custom implementation in JAX
+## Full Reproduction (from scratch)
 
-## Standards and calibration information
-* Eye-tracking calibration: 13-point calibration-validation scheme with 70% accuracy requirement
-* Response time filtering: minimum 300ms response time
-* Gaze data quality: minimum 8Hz sampling rate, maximum 50% missing data per trial
-* Model validation: Bayesian model fitting with multiple chains and convergence diagnostics
+1. **Behavioral Analysis**:
+   ```bash
+   Rscript scripts/mediation/fit.R
+   ```
 
-## Environmental/experimental conditions
-* Online experiment conducted on participants' personal computers
-* Webcam-based eye-tracking using standard consumer hardware
-* Screen resolution and viewing distance varied across participants
-* Participants required normal or corrected-to-normal vision
+2. **Computational Modeling**:
+   ```bash
+   python scripts/vam/train.py --data_dir data/processed/vam
+   ```
 
-## Quality-assurance procedures performed on the data
-* Multi-stage data exclusion criteria for response times, sampling rates, and gaze data quality
-* Bayesian model diagnostics including R-hat values and effective sample sizes
-* Cross-validation procedures for computational models
-* Robustness checks across different model specifications
+3. **Generate All Figures**:
+   ```bash
+   make figures  # Or run individual figure scripts
+   ```
 
-## People involved with sample collection, processing, analysis and/or submission
-* Simone D'Ambrogio: Study design, data collection, analysis, manuscript preparation
-* Michael Platt: Study design, supervision, manuscript review
-* Feng Sheng: Study design, analysis consultation, manuscript review
+# Troubleshooting
 
-# COMPUTATIONAL MODEL INFORMATION
+- **CUDA Errors**: Try reducing batch size if you encounter GPU memory issues
+- **JAX Installation**: Follow the specific JAX installation instructions for your CUDA version from the [VAM repository](https://github.com/pauljaffe/vam)
+- **Python Environment**: Use Python 3.10 as recommended by the original VAM implementation
+- **R Package Issues**: Ensure all R dependencies are installed with correct versions
+- **Model Loading**: Check that checkpoint files match the model configuration
+- **Eye-tracking Data**: Verify webcam calibration quality before analysis
+- **Missing Data**: Download the complete dataset from the OSF repository and ensure it's organized in the `data/` folder structure
+- **VAM-specific Issues**: Refer to the [original VAM repository](https://github.com/pauljaffe/vam) for additional troubleshooting
 
-## Model Architecture
-The Visual Accumulator Model (VAM) consists of:
-* **Visual Processing Module**: 6-layer Convolutional Neural Network (CNN) with 64, 64, 128, 128, 128, and 256 features, followed by fully-connected layer with 1024 units
-* **Decision Module**: Linear Ballistic Accumulator (LBA) with gaze-dependent evidence accumulation
-* **Gaze Integration**: Attention-weighted evidence accumulation with fitted gaze-bias parameter λ
+# Citation
 
-## Model Parameters
-* Non-decision time (t0), threshold component (c), starting point variability (a)
-* Gaze-bias parameter (λ) for attention-weighted evidence accumulation
-* CNN weights initialized from VGG16 pre-trained on ImageNet
+If you use this code or build upon this work, please cite:
 
-## Training Procedure
-* Data augmentation with random displacement and rotation (±15°)
-* Joint optimization of CNN parameters and LBA posterior distributions
-* Variational inference using Evidence Lower Bound (ELBO) maximization
-* Bayesian framework for parameter uncertainty quantification
+```bibtex
+@article{dambrogio2024pixels,
+  title={From Pixels to Preferences: Visual Salience Modulates Value Representations in Economic Choice},
+  author={D'Ambrogio, Simone and Platt, Michael and Sheng, Feng},
+  journal={arXiv preprint},
+  year={2024}
+}
+```
+
+If you use the Visual Accumulator Model (VAM) framework, please also cite the original VAM paper:
+
+```bibtex
+@article{jaffe2024vam,
+  title={An image-computable model of speeded decision-making},
+  author={Jaffe, Paul I. and Gustavo, X. S. R. and Schafer, Robert J. and Bissett, Patrick G. and Poldrack, Russell A.},
+  journal={eLife},
+  volume={13},
+  pages={RP98351},
+  year={2024}
+}
+```
+
+# Disclaimer
+
+This repository contains research code for investigating visual salience effects on economic choice. The implementation includes novel extensions to the Visual Accumulator Model framework and Bayesian mediation analysis techniques. The code has been tested to reproduce the reported results across multiple experimental conditions.
+
+# Contact
+
+For questions about the code or methodology, please open an issue or contact the corresponding authors.

@@ -15,30 +15,6 @@ fe_draws <- m %>%
     b_gain_is_salient
   )
 
-# Create predictions for all conditions
-ranef_df <- re_draws %>%
-  pivot_wider(names_from = term, values_from = r_subject) %>%
-  left_join(fe_draws, by = ".draw") %>%
-  reframe(
-    # Brightness, Gain is Salient
-    prob_brightness_gain = plogis(b_Intercept + Intercept + gain_is_salient) |> mean(),
-    # Brightness, Loss is Salient
-    prob_brightness_loss = plogis(b_Intercept + Intercept) |> mean()
-  ) %>%
-  pivot_longer(
-    cols = starts_with("prob"),
-    names_to = "condition",
-    values_to = "prob"
-  ) %>%
-  mutate(
-    condition = case_when(
-      condition == "prob_brightness_gain" ~ "Brightness_Gain",
-      condition == "prob_brightness_loss" ~ "Brightness_Loss"
-    )
-  ) %>%
-  separate(condition, into = c("condition", "salience"), sep = "_") %>% 
-  mutate(x = ifelse(salience=="Gain", 1, 2))
-
 # Compute mean and credible intervals
 pp <- prepare_predictions(m)
 fe <- as.data.frame(pp$dpars$mu$fe$b)
@@ -59,26 +35,24 @@ plot_gaze <- fixef_df %>%
     data=fixef_df %>% group_by(salience) %>% summarise(post=mean(post)), 
     aes(, fill=salience, color=salience, group=salience), linetype = "dashed"
   ) +
-  # geom_jitter(data = ranef_df, aes(x-0.1, prob),  alpha=0.1, width=0.1) +
   scale_color_manual(values = c(config$colors$`gain-salient`, config$colors$`loss-salient`)) +
   scale_fill_manual(values = c(blend_colors(config$colors$`gain-salient`, alpha = 0.4), blend_colors(config$colors$`loss-salient`, alpha = 0.4) )) +
   mytheme() + 
-  labs(x="", y="Probability of looking at gain first", color="", fill="") +
+  labs(x="", y="Probability of looking\nat gain first", color="", fill="") +
   scale_x_discrete(guide = "prism_offset") + 
   scale_y_continuous(guide = "prism_offset", limits = c(0.43, 0.65), breaks = seq(0.4, .65, .05)) +
   theme(
     legend.position="none",
-    plot.margin = margin(t = 70, r = 5, b = 5, l = 5, unit = "pt")
   ); print(plot_gaze)
 
 # Save the plot
 ggsave("figures/p(first-gaze)/salience.png",
        plot = plot_gaze,
-       width = 4.5, dpi = 300)
+       width = 4.5, height = 5.5, dpi = 300)
 
 ggsave("figures/p(first-gaze)/salience.svg",
        plot = plot_gaze,
-       width = 4, height = 5)
+       width = 4, height = 5.5)
 
 
 

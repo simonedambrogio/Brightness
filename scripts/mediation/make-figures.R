@@ -15,6 +15,7 @@ post_samples$ACME <- post_samples$b_gazegainZ_salience * post_samples$b_choice_g
 # ADE (Direct Effect)
 post_samples$ADE <- post_samples$b_choice_salience
 
+
 # 3. Summarize the posterior distributions of the conditional effects
 
 # ACME Summary
@@ -36,7 +37,32 @@ cat("Conditional Direct Effects (ADE):\n")
 cat(" ADE =", round(median_ADE, 4), " 95% CI [", round(ci_ADE[1], 4), ",", round(ci_ADE[2], 4), "]\n")
 cat("$\\mathrm{ADE} =", round(median_ADE, 3), "\\mathrm{SD}=", round(sd_ADE, 3), "95\\%\\mathrm{CrI}~[", round(ci_ADE[1], 3), ",", round(ci_ADE[2], 3), "]$")
 
+# 4. Calculate proportion of salience effect mediated by gaze
 
+
+# Calculate proportion of salience effect mediated by gaze
+# From the mediation analysis coefficients:
+salience_to_gaze <- post_samples$b_gazegainZ_salience
+gaze_to_choice <- post_samples$b_choice_gaze_gainZ
+direct_effect <- post_samples$b_choice_salience
+
+# Indirect effect (mediated by gaze)
+indirect_effect <- post_samples$ACME
+
+# Total effect
+total_effect <- direct_effect + indirect_effect
+
+# Proportion mediated by gaze
+proportion_mediated <- indirect_effect / total_effect
+percentage_mediated <- proportion_mediated * 100
+
+mean(proportion_mediated)
+
+print(paste("Proportion of salience effect mediated by gaze:", round(mean(proportion_mediated), 3)))
+print(paste("Percentage of salience effect mediated by gaze:", round(mean(percentage_mediated), 1), "%"))
+
+
+# 5. Make figures
 color_densities <- config$colors$`gain-salient`
 
 # Salience -> Gaze
