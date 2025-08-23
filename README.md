@@ -152,8 +152,6 @@ vam:
 │   │   ├── data_behavior.csv    # Main behavioral dataset
 │   │   └── vam/                 # VAM training inputs
 │   └── results/           # Analysis outputs and model fits
-├── docs/                  # Documentation and manuscript
-│   └── manuscript/        # LaTeX manuscript files
 ├── figures/               # Generated figures (created by scripts)
 ├── scripts/               # Analysis scripts
 │   ├── mediation/        # Mediation analysis
