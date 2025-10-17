@@ -1,7 +1,9 @@
 library(tidyr); library(tidybayes); library(grid); library(gtable)
 source("src/utils.R")
+source("scripts/p(gaze)/fit.R")
 
 m = readRDS("data/results/p(gaze)/m.rds")
+data_behavior <- read.csv("data/processed/data_behavior.csv") 
 
 # Plot probability of looking at gain ------------------------------------------
 # Get random effects and fixed effects draws
@@ -68,17 +70,17 @@ plot_gaze <- fixef_df %>%
   scale_y_continuous(guide = "prism_offset", limits = c(0.43, 0.65), breaks = seq(0.4, .65, .05)) +
   theme(
     legend.position="none",
-    plot.margin = margin(t = 60, r = 5, b = 5, l = 5, unit = "pt")
+    plot.margin = margin(t = 10, r = 5, b = 5, l = 5, unit = "pt")
   ); print(plot_gaze)
 
 # Save the plot
 ggsave("figures/p(gaze)/salience.png",
        plot = plot_gaze,
-       width = 4.5, dpi = 300)
+       width = 4.5, height = 5.5, dpi = 300)
 
 ggsave("figures/p(gaze)/salience.svg",
        plot = plot_gaze,
-       width = 4, height = 5)
+       width = 4, height = 5.5)
 
 
 
@@ -181,4 +183,72 @@ ggsave("figures/p(gaze)/pars-re.png",
 ggsave("figures/p(gaze)/pars-re.svg",
        plot = plot_coef,
        width = 8, height = 4.5)
+
+
+
+# value difference -------------------------------------------------------------
+# Calculate empirical p(gaze) for observed data
+empirical_data <- data_behavior %>%
+  mutate(
+    value_diff = gain - loss,
+    condition = ifelse(SalL, "Loss Salient", "Gain Salient"),
+    # Create value difference bins for aggregation
+    value_diff_bin = round(value_diff * 4) / 4  # Bin to nearest 0.25
+  ) %>%
+  group_by(value_diff_bin, condition) %>%
+  summarise(
+    p_accept_emp = mean(gaze_gain, na.rm = TRUE),
+    n_trials = n(),
+    se = sqrt(p_accept_emp * (1 - p_accept_emp) / n_trials),
+    .groups = 'drop'
+  ) %>%
+  filter(n_trials >= 5)  # Only include bins with at least 5 trials
+
+p_value_diff <- ggplot() +
+  
+  # Empirical data ribbons (confidence bands around empirical data)
+  geom_ribbon(data = empirical_data,
+              aes(x = value_diff_bin, 
+                  ymin = p_accept_emp - se, 
+                  ymax = p_accept_emp + se,
+                  fill = condition),
+              alpha = 0.3, color = NA) +
+  # Empirical data points
+  geom_point(data = empirical_data,
+             aes(x = value_diff_bin, y = p_accept_emp, color = condition),
+             size = 4, alpha = 0.8, shape = 16) +
+  
+  # Cross 0 and 0.5
+  geom_vline(xintercept = 0, linewidth = 0.3, linetype = 2) +
+  geom_hline(yintercept = 0.5, linewidth = 0.3, linetype = 2) +
+  
+  # Visual settings
+  scale_color_manual(values = c("Loss Salient" = config$colors$`loss-salient`, 
+                                "Gain Salient" = config$colors$`gain-salient`)) +
+  scale_fill_manual(values = c("Loss Salient" = config$colors$`loss-salient`, 
+                               "Gain Salient" = config$colors$`gain-salient`)) +
+  mytheme() + 
+  labs(
+    x = "Value Difference\n(Gain - Loss)",
+    y="Proportion of Gaze on Gain",
+    color = "",
+    fill = ""
+  ) +
+  scale_x_continuous(guide = "prism_offset") + 
+  scale_y_continuous(guide = "prism_offset", limits = c(-0.05, 1.05), breaks = seq(0, 1, 0.25)) +
+  theme(
+    legend.position = c(0.25, 0.85),
+    plot.margin = margin(t = 20, unit = "pt")
+  )
+
+print(p_value_diff)
+
+# Save the plot
+ggsave("figures/p(gaze)/value_difference.png",
+       plot = p_value_diff,
+       width = 6, height = 6, dpi = 300)
+
+ggsave("figures/p(gaze)/value_difference.svg",
+       plot = p_value_diff,
+       width = 6, height = 6)
 

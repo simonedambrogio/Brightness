@@ -10,6 +10,7 @@
 .Ruserdata
 .DS_Store
 data
+output
 __pycache__
 
 # LaTeX build directory

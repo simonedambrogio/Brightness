@@ -145,8 +145,7 @@ gazegain <- dfplot %>%
     scale_x_continuous(guide = "prism_offset") +
     scale_y_continuous(
       guide = "prism_offset", breaks = seq(0, 0.2, 0.1), limits = c(-0.04, 0.24)
-    ); print(gazegain_brightness)
-
+    ); print(gazegain)
 
 # Save the plot
 ggsave("figures/gaze-over-time/look_at_gain.png",
@@ -174,7 +173,7 @@ gazeloss <- dfplot %>%
   scale_color_manual(values = c(config$colors$`gain-salient`, config$colors$`loss-salient`)) +
   scale_x_continuous(guide = "prism_offset") +
   scale_y_continuous(
-    guide = "prism_offset", breaks = seq(0, 0.2, 0.1), limits = c(-0.04, 0.24))
+    guide = "prism_offset", breaks = seq(0, 0.2, 0.1), limits = c(-0.04, 0.24)); print(gazeloss)
 
 
 # Save the plot

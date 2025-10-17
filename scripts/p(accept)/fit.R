@@ -3,7 +3,7 @@ source("src/utils.R")
 config <- read_yaml("config.yaml")
 
 # p(accept) ~ gain + loss + gaze + salience + first_gaze
-if (!file.exists("data/results/p(accept)/m.rds")){
+if (!file.exists("output/p(accept)/m.rds")){
 
     data_behavior <- read.csv("data/processed/data_behavior.csv") 
 
@@ -29,14 +29,14 @@ if (!file.exists("data/results/p(accept)/m.rds")){
         cores = 4, refresh = 10, 
         family = bernoulli(link = "logit")
     )
-    path2save <- file.path(config$local$data, "results/p(accept)")
+    path2save <- file.path(config$local$output, "p(accept)")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(m, file.path(path2save, "m.rds"))
     save_bayes_md(m, file.path(path2save, "m.md"))
 }
 
 # p(accept) ~ gain + loss + salience
-if (!file.exists("data/results/p(accept)/m.1.rds")){
+if (!file.exists("output/p(accept)/m.1.rds")){
 
     data_behavior <- read.csv("data/processed/data_behavior.csv") 
 
@@ -60,14 +60,14 @@ if (!file.exists("data/results/p(accept)/m.1.rds")){
         cores = 4, refresh = 10, 
         family = bernoulli(link = "logit")
     )
-    path2save <- file.path(config$local$data, "results/p(accept)")
+    path2save <- file.path(config$local$output, "p(accept)")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(m, file.path(path2save, "m.1.rds"))
     save_bayes_md(m, file.path(path2save, "m.1.md"))
 }
 
 # p(accept) ~ ev + salience + gaze + first_gaze
-if (!file.exists("data/results/p(accept)/m1.rds")){
+if (!file.exists("output/p(accept)/m1.rds")){
   
   data_behavior <- read.csv("data/processed/data_behavior.csv") 
   
@@ -92,14 +92,14 @@ if (!file.exists("data/results/p(accept)/m1.rds")){
     cores = 4, refresh = 10, 
     family = bernoulli(link = "logit")
   )
-  path2save <- file.path(config$local$data, "results/p(accept)")
+  path2save <- file.path(config$local$output, "p(accept)")
   if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
   saveRDS(m, file.path(path2save, "m1.rds"))
   save_bayes_md(m, file.path(path2save, "m1.md"))
 }
 
 # p(accept) ~ ev + salience
-if (!file.exists("data/results/p(accept)/m1.1.rds")){
+if (!file.exists("output/p(accept)/m1.1.rds")){
   
   data_behavior <- read.csv("data/processed/data_behavior.csv") 
   
@@ -124,7 +124,7 @@ if (!file.exists("data/results/p(accept)/m1.1.rds")){
     cores = 4, refresh = 10, 
     family = bernoulli(link = "logit")
   )
-  path2save <- file.path(config$local$data, "results/p(accept)")
+  path2save <- file.path(config$local$output, "p(accept)")
   if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
   saveRDS(m, file.path(path2save, "m1.1.rds"))
   save_bayes_md(m, file.path(path2save, "m1.1.md"))

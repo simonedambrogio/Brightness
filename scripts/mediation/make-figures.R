@@ -4,7 +4,7 @@ library(ggdist); library(yaml)
 config <- yaml::read_yaml(file = "config.yaml")
 
 # 1. Extract posterior samples
-m <- readRDS("data/results/mediation/m.rds")
+m <- readRDS("output/mediation/m.rds")
 post_samples <- posterior_samples(m)
 
 # 2. Calculate conditional effects for each posterior draw

@@ -1,8 +1,9 @@
 local:
-    data: /Volumes/PROJECTS/Ongoing/Brightness/data
+    data: /Volumes/PROJECTS/data/brightness
+    output: /Volumes/PROJECTS/output/brightness
     vam:
-        data_dir: /Volumes/PROJECTS/Ongoing/Brightness/data/processed/vam/model_inputs
-        save_dir: /Volumes/PROJECTS/Ongoing/Brightness/data/results/vam/training
+        data_dir: /Volumes/PROJECTS/data/brightness/processed/vam/model_inputs
+        save_dir: /Volumes/PROJECTS/output/brightness/vam/training
         expt_name: aVAM
 
 colors:

@@ -1,7 +1,9 @@
-library(tidyr); library(tidybayes); library(grid); library(gtable)
+library(tidyr); library(tidybayes); library(grid); library(gtable); library(ggplot2)
 source("src/utils.R")
+source("scripts/p(first-gaze)/fit.R")
 
 m = readRDS("data/results/p(first-gaze)/m1.rds")
+data_behavior <- read.csv("data/processed/data_behavior.csv") 
 
 # Plot probability of looking at gain ------------------------------------------
 # Get random effects and fixed effects draws
@@ -158,5 +160,74 @@ ggsave("figures/p(first-gaze)/pars-re.png",
 ggsave("figures/p(first-gaze)/pars-re.svg",
        plot = plot_coef,
        width = 8, height = 4.5)
+
+
+
+# value difference -------------------------------------------------------------
+# Calculate empirical p(first-is-gain) for observed data
+empirical_data <- data_behavior %>%
+  mutate(
+    first_is_gain = 1-first_is_loss,
+    value_diff = gain - loss,
+    condition = ifelse(SalL, "Loss Salient", "Gain Salient"),
+    # Create value difference bins for aggregation
+    value_diff_bin = round(value_diff * 4) / 4  # Bin to nearest 0.25
+  ) %>%
+  group_by(value_diff_bin, condition) %>%
+  summarise(
+    p_accept_emp = mean(first_is_gain, na.rm = TRUE),
+    n_trials = n(),
+    se = sqrt(p_accept_emp * (1 - p_accept_emp) / n_trials),
+    .groups = 'drop'
+  ) %>%
+  filter(n_trials >= 5)  # Only include bins with at least 5 trials
+
+p_value_diff <- ggplot() +
+  
+  # Empirical data ribbons (confidence bands around empirical data)
+  geom_ribbon(data = empirical_data,
+              aes(x = value_diff_bin, 
+                  ymin = p_accept_emp - se, 
+                  ymax = p_accept_emp + se,
+                  fill = condition),
+              alpha = 0.3, color = NA) +
+  # Empirical data points
+  geom_point(data = empirical_data,
+             aes(x = value_diff_bin, y = p_accept_emp, color = condition),
+             size = 4, alpha = 0.8, shape = 16) +
+  
+  # Cross 0 and 0.5
+  geom_vline(xintercept = 0, linewidth = 0.3, linetype = 2) +
+  geom_hline(yintercept = 0.5, linewidth = 0.3, linetype = 2) +
+  
+  # Visual settings
+  scale_color_manual(values = c("Loss Salient" = config$colors$`loss-salient`, 
+                                "Gain Salient" = config$colors$`gain-salient`)) +
+  scale_fill_manual(values = c("Loss Salient" = config$colors$`loss-salient`, 
+                               "Gain Salient" = config$colors$`gain-salient`)) +
+  mytheme() + 
+  labs(
+    x = "Value Difference\n(Gain - Loss)",
+    y="Probability of First Gaze on Gain",
+    color = "",
+    fill = ""
+  ) +
+  scale_x_continuous(guide = "prism_offset") +
+  scale_y_continuous(guide = "prism_offset", limits = c(-0.05, 1.05), breaks = seq(0, 1, 0.25)) +
+  theme(
+    legend.position = c(0.25, 0.85),
+    plot.margin = margin(t = 20, unit = "pt")
+  )
+
+print(p_value_diff)
+
+# Save the plot
+ggsave("figures/p(first-gaze)/value_difference.png",
+       plot = p_value_diff,
+       width = 6, height = 6, dpi = 300)
+
+ggsave("figures/p(first-gaze)/value_difference.svg",
+       plot = p_value_diff,
+       width = 6, height = 6)
 
 

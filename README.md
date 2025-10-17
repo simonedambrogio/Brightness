@@ -17,9 +17,9 @@ If you find this code useful, please reference in your paper:
 <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Open_Science_Framework_log_%28and_Center_for_Open_Science_logo%29.svg" width="15px"> [**Data**](https://osf.io/uk46v/files/osfstorage)
 
 The data repository contains:
-- **Model fits and results**: Pre-computed model outputs to replicate all figures
 - **Preprocessed behavioral data**: Ready-to-use data for replicating statistical analyses
 - **VAM training inputs**: Processed visual stimuli and behavioral data for training the aVAM model
+- **Model fits and results**: Pre-computed model outputs stored in the `output/` folder to replicate all figures
 
 
 ## Summary
@@ -65,11 +65,11 @@ Pkg.add(["NPZ", "YAML", "LinearAlgebra", "CairoMakie", "GLMakie", "Statistics",
 
 ## Data Preparation
 
-Download the data from the [OSF repository](https://osf.io/uk46v/) and organize it in a `data/` folder as shown in the Repository Structure section below.
+Download the data from the [OSF repository](https://osf.io/uk46v/) and organize it as shown in the Repository Structure section below. Configure paths in `config.yaml` to match your local setup.
 
 1. **Behavioral Data**: Use the preprocessed behavioral data from the repository (`data_behavior.csv`)
-2. **Model Results**: Pre-computed model fits and outputs are available for immediate figure replication
-3. **VAM Training Data**: Processed visual stimuli and behavioral data ready for aVAM training
+2. **VAM Training Data**: Processed visual stimuli and behavioral data ready for aVAM training
+3. **Model Results**: Pre-computed model fits and outputs are stored in the `output/` folder for immediate figure replication
 4. **Eye-tracking Data**: Preprocessed gaze data from webcam-based eye tracking is included
 
 ## Training the aVAM
@@ -132,26 +132,29 @@ All configuration options are specified in `config.yaml`:
 
 ```yaml
 local:
-  data: "data/"
-  
+  data: /path/to/data/brightness
+  output: /path/to/output/brightness
+  vam:
+    data_dir: /path/to/data/brightness/processed/vam/model_inputs
+    save_dir: /path/to/output/brightness/vam/training
+    expt_name: aVAM
+
 colors:
-  gain-salient: "#1f77b4"
-  loss-salient: "#2ca02c"
-  
-vam:
-  data_dir: "data/processed/vam"
-  save_dir: "results/vam"
-  expt_name: "brightness_experiment"
+  gain-salient: "#4155a5"
+  loss-salient: "#71cace"
+  accept: "#00857D"
+  reject: "#FF3333"
 ```
 
 ## Repository Structure
 
 ```
 ├── data/                   # Data files (download from OSF)
-│   ├── processed/         # Processed behavioral and modeling data
-│   │   ├── data_behavior.csv    # Main behavioral dataset
-│   │   └── vam/                 # VAM training inputs
-│   └── results/           # Analysis outputs and model fits
+│   └── processed/         # Processed behavioral and modeling data
+│       ├── data_behavior.csv    # Main behavioral dataset
+│       └── vam/                 # VAM training inputs
+├── output/                # Analysis outputs and model fits
+│   └── vam/              # VAM training results
 ├── figures/               # Generated figures (created by scripts)
 ├── scripts/               # Analysis scripts
 │   ├── mediation/        # Mediation analysis
@@ -163,7 +166,7 @@ vam:
 └── config.yaml           # Configuration file
 ```
 
-**Note**: The `data/` folder structure is expected by all analysis scripts. Download the data from OSF and organize it as shown above.
+**Note**: Configure `data/` and `output/` paths in `config.yaml` to match your local setup. Download the data from OSF and organize it as shown above.
 
 # Reproducibility
 
@@ -171,9 +174,9 @@ To reproduce the main results:
 
 ## Quick Reproduction (using pre-computed results)
 
-1. **Download Data**: Get the data from the OSF repository and organize it in the `data/` folder as shown in the Repository Structure
+1. **Download Data**: Get the data from the OSF repository and organize it as shown in the Repository Structure. Configure paths in `config.yaml`.
 
-2. **Generate Figures**: Use the pre-computed model fits to immediately reproduce all figures:
+2. **Generate Figures**: Use the pre-computed model fits from the `output/` folder to immediately reproduce all figures:
    ```bash
    Rscript scripts/mediation/make-figures.R
    Rscript scripts/p\(accept\)/make-figures.R

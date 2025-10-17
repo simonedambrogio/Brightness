@@ -2,7 +2,7 @@ library(tidyverse); library(brms); library(yaml)
 source("src/utils.R")
 config <- read_yaml("config.yaml")
 
-if (!file.exists("data/results/p(first-gaze)/m.rds")){
+if (!file.exists("output/p(first-gaze)/m.rds")){
 
     # Load data
     data_behavior <- read.csv("data/processed/data_behavior.csv") 
@@ -28,7 +28,7 @@ if (!file.exists("data/results/p(first-gaze)/m.rds")){
         iter = 20000,
         seed = 123
     )
-    path2save <- file.path(config$local$data, "results/p(first-gaze)")
+    path2save <- file.path(config$local$output, "p(first-gaze)")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(m, file.path(path2save, "m.rds"))
     save_bayes_md(m, file.path(path2save, "m.md"))
@@ -36,7 +36,7 @@ if (!file.exists("data/results/p(first-gaze)/m.rds")){
 
 
 
-if (!file.exists("data/results/p(first-gaze)/m1.rds")){
+if (!file.exists("output/p(first-gaze)/m1.rds")){
 
     # Load data
     data_behavior <- read.csv("data/processed/data_behavior.csv") 
@@ -63,7 +63,7 @@ if (!file.exists("data/results/p(first-gaze)/m1.rds")){
         iter = 20000,
         seed = 123
     )
-    path2save <- file.path(config$local$data, "results/p(first-gaze)")
+    path2save <- file.path(config$local$output, "p(first-gaze)")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(m, file.path(path2save, "m1.rds"))
     save_bayes_md(m, file.path(path2save, "m1.md"))

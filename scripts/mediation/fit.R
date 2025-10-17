@@ -3,7 +3,7 @@ library(stringr); library(lme4); library(mediation)
 library(tidyverse); library(brms); library(yaml)
 config <- read_yaml("config.yaml")
 
-if (!file.exists("data/results/mediation/m.rds")){
+if (!file.exists("output/mediation/m.rds")){
     print("Fitting model...")
 
     # Mediation analysis ===========================================================
@@ -32,7 +32,7 @@ if (!file.exists("data/results/mediation/m.rds")){
         seed = 123 # For reproducibility
     )
 
-    path2save <- file.path(config$local$data, "results/mediation")
+    path2save <- file.path(config$local$output, "mediation")
     if (!dir.exists(path2save)) dir.create(path2save, recursive = TRUE)
     saveRDS(brms_mediation_fit, file = file.path(path2save, "m.rds"))
 } 

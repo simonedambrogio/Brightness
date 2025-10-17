@@ -1,5 +1,5 @@
 library(ggplot2); library(ggdist); library(tidyr); library(yaml)
-library(grid); library(gtable); library(forcats); library(brms)
+library(grid); library(gtable); library(forcats); library(brms); library(tidybayes)
 config <- read_yaml("config.yaml")
 source("src/utils.R")
 
@@ -98,18 +98,19 @@ empirical_data <- data_behavior %>%
   filter(n_trials >= 5)  # Only include bins with at least 5 trials
 
 p_value_diff <- ggplot() +
+  
   # Empirical data ribbons (confidence bands around empirical data)
   geom_ribbon(data = empirical_data,
               aes(x = value_diff_bin, 
-                  ymin = pmax(0, p_accept_emp - se), 
-                  ymax = pmin(1, p_accept_emp + se),
+                  ymin = p_accept_emp - se, 
+                  ymax = p_accept_emp + se,
                   fill = condition),
               alpha = 0.3, color = NA) +
-  
   # Empirical data points
   geom_point(data = empirical_data,
              aes(x = value_diff_bin, y = p_accept_emp, color = condition),
              size = 4, alpha = 0.8, shape = 16) +
+  
   # Cross 0 and 0.5
   geom_vline(xintercept = 0, linewidth = 0.3, linetype = 2) +
   geom_hline(yintercept = 0.5, linewidth = 0.3, linetype = 2) +
@@ -255,6 +256,82 @@ w = 0.7
 ggsave("figures/p(accept)/pars.svg",
        plot = plot_coef,
        width = 10 * w, height = 4.5 * w)
+
+
+# Horizontal 
+pp <- prepare_predictions(m)
+fe <- as_tibble(pp$dpars$mu$fe$b) %>% 
+  rename(
+    Intercept = b_Intercept, 
+    Gain = b_gainZ, 
+    Loss = b_lossZ, 
+    `Prop. Gaze\nGain` = b_gaze_gainZ,
+    `First Gaze\nat Gain` = b_first_is_gain,
+    `Loss in\nSalient` = b_SalL
+  ) %>% 
+  select(Intercept, Gain, Loss, `Prop. Gaze\nGain`, `First Gaze\nat Gain`, `Loss in\nSalient`)
+
+# Extract random effects for each subject
+library(brms)
+ranef_data <- ranef(m)$subject[, 1, ]  # Get all subjects, first statistic (Estimate), all parameters
+
+# Get fixed effects means
+fe_means <- fe %>% 
+  summarise(across(everything(), mean)) %>%
+  as.list()
+
+# Extract subject-specific coefficients (fixed effects + random effects)
+subject_coefs <- tibble(
+  subject = rownames(ranef_data),
+  Intercept = ranef_data[, "Intercept"],
+  Gain = ranef_data[, "gainZ"], 
+  Loss = ranef_data[, "lossZ"],
+  `Prop. Gaze\nGain` = ranef_data[, "gaze_gainZ"],
+  `First Gaze\nat Gain` = ranef_data[, "first_is_gain"],
+  `Loss in\nSalient` = ranef_data[, "SalL"]
+) %>%
+  # Add fixed effects to get total subject-specific effects
+  mutate(
+    Intercept = Intercept + fe_means$Intercept,
+    Gain = Gain + fe_means$Gain,
+    Loss = Loss + fe_means$Loss,
+    `Prop. Gaze\nGain` = `Prop. Gaze\nGain` + fe_means$`Prop. Gaze\nGain`,
+    `First Gaze\nat Gain` = `First Gaze\nat Gain` + fe_means$`First Gaze\nat Gain`,
+    `Loss in\nSalient` = `Loss in\nSalient` + fe_means$`Loss in\nSalient`
+  ) %>%
+  # Reshape for plotting
+  reshape2::melt(id.vars = "subject") %>%
+  as_tibble() %>%
+  mutate(variable = factor(variable, levels = names(fe))) %>%
+  mutate(variable = fct_rev(variable))
+
+# Create the main plot with jittered subject points
+plot_flipped <- fe %>% 
+  reshape2::melt() %>% as_tibble() %>%
+  mutate(variable = factor(variable, levels = unique(.$variable))) %>%
+  mutate(variable = fct_rev(variable)) %>%  # Add this line to reverse order
+  ggplot(aes(y = value, x = variable)) + 
+  # Add jittered points for individual subjects
+  geom_jitter(data = subject_coefs, aes(y = value, x = variable), 
+              width = 0.05, height = 0, alpha = 0.2, size = 3, color = "gray") +
+  stat_gradientinterval(width=0.2) +
+  geom_hline(yintercept = 0., linetype="dashed") +
+  # coord_flip() +  # Add this line to flip
+  mytheme() + 
+  theme(legend.position = "top") +
+  labs(x = NULL, y = "\nCoefficients estimates", color="", fill="") +
+  scale_y_continuous(guide = "prism_offset") + 
+  scale_x_discrete(guide = "prism_offset"); print(plot_flipped)
+
+# Save the flipped plot
+ggsave("figures/p(accept)/pars_re.png",
+       plot = plot_flipped,
+       width = 10, height = 5.5, dpi = 300)
+
+ggsave("figures/p(accept)/pars_re.svg",
+       plot = plot_flipped,
+       width = 10, height = 5.5)
+
 
 # Vertical 
 pp <- prepare_predictions(m)
