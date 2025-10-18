@@ -1,4 +1,4 @@
-# From Pixels to Preferences: Visual Salience Modulates Value Representations in Economic Choice
+# From Pixels to Preferences: Visual Salience Shapes Economic Choice via Dual Pathways
 
 A computational modeling approach to understanding how visual salience influences economic decision-making through multiple pathways. This repository contains the implementation of the attentional Visual Accumulator Model (aVAM) and analysis code for investigating salience effects on risky choice behavior.
 
