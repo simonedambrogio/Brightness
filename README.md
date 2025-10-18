@@ -214,12 +214,7 @@ To reproduce the main results:
 If you use this code or build upon this work, please cite:
 
 ```bibtex
-@article{dambrogio2024pixels,
-  title={From Pixels to Preferences: Visual Salience Modulates Value Representations in Economic Choice},
-  author={D'Ambrogio, Simone and Platt, Michael and Sheng, Feng},
-  journal={arXiv preprint},
-  year={2024}
-}
+We are submitting the preprint to bioRxiv in these days...
 ```
 
 If you use the Visual Accumulator Model (VAM) framework, please also cite the original VAM paper:
